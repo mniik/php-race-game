@@ -4,6 +4,7 @@ namespace Mniik\PhpRaceGame\Commands;
 
 
 use Mniik\PhpRaceGame\Models\Vehicle;
+use Mniik\PhpRaceGame\Services\RaceService;
 
 class RaceGameCommand
 {
@@ -16,6 +17,14 @@ class RaceGameCommand
         $players = $this->promptForVehicles();
         $distance = $this->promptForDistance();
 
+        $racerService = new RaceService(array_values($players), $distance);
+        $result = $racerService->run();
+
+        $table = new \cli\Table();
+        $table->setHeaders(['player','vehicle','lapTime (hours)']);
+        $table->setRows($result);
+        $table->display();
+
     }
 
     private function promptForVehicles(): array
@@ -26,14 +35,14 @@ class RaceGameCommand
                 null,
                 "choose Player #{$player} vehicle",
             );
-            $participates[$player] = $this->vehicles[$selectedIndex];
+            $players[$player] = $this->vehicles[$selectedIndex];
         }
-        return $participates;
+        return $players;
     }
 
     private function promptForDistance():int
     {
-        $distance = \cli\prompt('provide race distance in KM: ');
+        $distance = \cli\prompt('provide race distance in KM');
 
         if (!is_numeric($distance) || (int)$distance < 0) {
             return $this->promptForDistance('The distance must be an positive integer?');
